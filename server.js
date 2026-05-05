@@ -156,6 +156,60 @@ app.get('/api/achievements', auth, (req, res) => {
   res.json(store.achievements.filter(a => a.user_id === req.user.id));
 });
 
+// ── QR MACHINE ENDPOINTS ──────────────────────────────────────
+
+// Generate QR token (called by machine/admin)
+app.post('/api/machine/generate', (req, res) => {
+  const { waste_type, kg, machine_id, secret } = req.body;
+  if (secret !== (process.env.MACHINE_SECRET || 'eco_machine_2026'))
+    return res.status(403).json({ error: 'Forbidden' });
+  const rates = { 'Пластик': 12, 'Бумага': 8, 'Стекло': 6, 'Металл': 15, 'Электроника': 20 };
+  if (!rates[waste_type] || !kg || kg <= 0) return res.status(400).json({ error: 'Bad data' });
+  const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const coins = Math.round(kg * rates[waste_type]);
+  if (!store.qrTokens) store.qrTokens = [];
+  store.qrTokens.push({ token, waste_type, kg: parseFloat(kg), coins, machine_id: machine_id || 'M1', used: false, expires: Date.now() + 600000, created_at: new Date().toISOString() });
+  saveData();
+  res.json({ success: true, token, qr_data: `ECOCOIN:${token}`, coins, waste_type, kg });
+});
+
+// Scan QR (called by user app after scanning)
+app.post('/api/scan-qr', auth, (req, res) => {
+  const { qr_data } = req.body;
+  if (!qr_data || !qr_data.startsWith('ECOCOIN:')) return res.status(400).json({ error: 'Неверный QR-код' });
+  const token = qr_data.replace('ECOCOIN:', '');
+  if (!store.qrTokens) store.qrTokens = [];
+  const qr = store.qrTokens.find(q => q.token === token);
+  if (!qr) return res.status(400).json({ error: 'QR-код не найден' });
+  if (qr.used) return res.status(400).json({ error: 'QR-код уже использован' });
+  if (Date.now() > qr.expires) return res.status(400).json({ error: 'QR-код просрочен (10 мин)' });
+  qr.used = true; qr.used_by = req.user.id; qr.used_at = new Date().toISOString();
+  const user = store.users.find(u => u.id === req.user.id);
+  user.balance += qr.coins;
+  user.total_kg = (user.total_kg || 0) + qr.kg;
+  store.transactions.push({ id: nextId('t'), user_id: user.id, type: 'earn', waste_type: qr.waste_type, kg: qr.kg, coins: qr.coins, description: `${qr.waste_type} — ${qr.kg} кг (автомат ${qr.machine_id})`, created_at: new Date().toISOString() });
+  const earned = store.achievements.filter(a => a.user_id === user.id).map(a => a.name);
+  const newAch = [];
+  const add = (c, n, i) => { if (c && !earned.includes(n)) { store.achievements.push({ id: nextId('a'), user_id: user.id, name: n, icon: i, created_at: new Date().toISOString() }); newAch.push(n + ' ' + i); } };
+  add(true, 'Первая сдача', '🌱'); add(user.total_kg >= 10, 'Переработчик', '♻️'); add(user.balance >= 1000, 'Тысячник', '💎'); add(user.balance >= 5000, 'Эко-Герой', '🏆');
+  saveData();
+  res.json({ success: true, coins: qr.coins, balance: user.balance, waste_type: qr.waste_type, kg: qr.kg, newAchievements: newAch });
+});
+
+// Demo QR (testing without machine)
+app.get('/api/demo-qr', auth, (req, res) => {
+  const types = ['Пластик','Бумага','Стекло','Металл'];
+  const waste_type = types[Math.floor(Math.random() * types.length)];
+  const kg = Math.round((Math.random() * 4 + 0.5) * 10) / 10;
+  const rates = { 'Пластик': 12, 'Бумага': 8, 'Стекло': 6, 'Металл': 15, 'Электроника': 20 };
+  const coins = Math.round(kg * rates[waste_type]);
+  const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  if (!store.qrTokens) store.qrTokens = [];
+  store.qrTokens.push({ token, waste_type, kg, coins, machine_id: 'DEMO', used: false, expires: Date.now() + 600000, created_at: new Date().toISOString() });
+  saveData();
+  res.json({ qr_data: `ECOCOIN:${token}`, waste_type, kg, coins });
+});
+
 // ── ROUTES ────────────────────────────────────────────────────
 app.get('/app', (_, res) => res.sendFile(path.join(__dirname, 'public', 'app', 'index.html')));
 app.get('/app/*', (req, res) => {
@@ -164,5 +218,6 @@ app.get('/app/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'app', 'index.html'));
 });
 app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
 
 app.listen(PORT, () => console.log(`🌿 ЭКО Coin: http://localhost:${PORT}`));

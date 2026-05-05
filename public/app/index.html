@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/app/style.css"/>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
 
@@ -196,23 +197,22 @@
         </div>
       </div>
 
-      <div class="weight-section glass">
-        <h3>Укажите вес</h3>
-        <div class="weight-controls">
-          <button class="wc-btn" onclick="changeWeight(-0.5)">−</button>
-          <div class="weight-display">
-            <input type="number" id="weightVal" value="1" min="0.1" step="0.1" oninput="updateCalc()"/>
-            <span>кг</span>
-          </div>
-          <button class="wc-btn" onclick="changeWeight(0.5)">+</button>
+      <div class="qr-scanner-section glass">
+        <h3>Отсканируйте QR-код автомата</h3>
+        <p class="text-sm text-muted mb-4">После сдачи отходов автомат покажет QR-код. Отсканируйте его для получения монет.</p>
+        
+        <div id="qr-reader" style="width:100%; border-radius: 12px; overflow: hidden; margin-bottom: 16px;"></div>
+        
+        <div class="qr-actions">
+          <button class="btn-primary btn-full btn-lg" id="startScanBtn" onclick="startQRScanner()">
+            📷 Открыть сканер
+          </button>
+          <button class="btn-ghost btn-full mt-2" onclick="testDemoQR()">
+            (Тест) Симулировать автомат
+          </button>
         </div>
-        <div class="calc-result">
-          Вы получите: <span id="coinsCalc">12</span> 🪙
-        </div>
-        <button class="btn-primary btn-full btn-lg" id="submitWasteBtn" onclick="submitWaste()">
-          Подтвердить сдачу ✅
-        </button>
-        <div id="wasteSuccess" class="success-msg hidden"></div>
+        
+        <div id="wasteSuccess" class="success-msg hidden mt-4"></div>
       </div>
 
       <!-- Nearest points -->

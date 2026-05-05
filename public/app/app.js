@@ -171,34 +171,41 @@ function selectWasteType(el) {
   updateCalc();
 }
 
-function changeWeight(delta) {
-  const inp = document.getElementById('weightVal');
-  let val = parseFloat(inp.value) + delta;
-  if (val < 0.1) val = 0.1;
-  inp.value = Math.round(val * 10) / 10;
-  updateCalc();
+let html5QrcodeScanner = null;
+
+function startQRScanner() {
+  const btn = document.getElementById('startScanBtn');
+  btn.style.display = 'none';
+
+  html5QrcodeScanner = new Html5QrcodeScanner(
+    "qr-reader",
+    { fps: 10, qrbox: {width: 250, height: 250} },
+    false
+  );
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 }
 
-function updateCalc() {
-  const kg = parseFloat(document.getElementById('weightVal').value) || 0;
-  document.getElementById('coinsCalc').textContent = Math.round(kg * selectedWaste.rate).toLocaleString('ru-RU');
-}
+async function onScanSuccess(decodedText, decodedResult) {
+  // Stop scanner
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.clear();
+    document.getElementById('startScanBtn').style.display = 'block';
+  }
 
-async function submitWaste() {
-  const kg = parseFloat(document.getElementById('weightVal').value);
-  if (!kg || kg <= 0) return showToast('Укажите вес', true);
-  const btn = document.getElementById('submitWasteBtn');
-  btn.textContent = 'Отправляем...'; btn.disabled = true;
-
-  const data = await api('/api/waste', { method: 'POST', body: JSON.stringify({ waste_type: selectedWaste.type, kg }) });
-  btn.textContent = 'Подтвердить сдачу ✅'; btn.disabled = false;
+  showToast('Проверка QR-кода... ⏳');
+  
+  const data = await api('/api/scan-qr', {
+    method: 'POST',
+    body: JSON.stringify({ qr_data: decodedText })
+  });
 
   if (data.error) return showToast(data.error, true);
 
+  // Success
   const msg = document.getElementById('wasteSuccess');
-  msg.textContent = `✅ Начислено +${data.coins} монет! Баланс: ${data.balance.toLocaleString('ru-RU')} 🪙`;
+  msg.textContent = `✅ Сдано: ${data.waste_type} (${data.kg} кг). Начислено +${data.coins} монет! Баланс: ${data.balance.toLocaleString('ru-RU')} 🪙`;
   msg.classList.remove('hidden');
-  setTimeout(() => msg.classList.add('hidden'), 4000);
+  setTimeout(() => msg.classList.add('hidden'), 5000);
 
   if (data.newAchievements?.length) {
     showToast('🏅 Новое достижение: ' + data.newAchievements[0]);
@@ -210,6 +217,19 @@ async function submitWaste() {
   await loadTransactions();
   await loadAchievements();
   await loadLeaderboard();
+}
+
+function onScanFailure(error) {
+  // Ignore continuous scan errors
+}
+
+async function testDemoQR() {
+  showToast('Генерация тестового QR... ⏳');
+  const demoData = await api('/api/demo-qr');
+  if (demoData.error) return showToast('Ошибка теста', true);
+  
+  // Instantly process it as if scanned
+  await onScanSuccess(demoData.qr_data);
 }
 
 // ── SPEND ─────────────────────────────────────────────
