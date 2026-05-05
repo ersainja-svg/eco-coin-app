@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ЭКО Coin — Зарабатывай, сортируя мусор</title>
+  <meta name="description" content="ЭКО Coin — цифровая бонусная платформа Казахстана. Сдавай вторсырьё, получай монеты, трать у партнёров." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Animated background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">🌿</div>
+        <span class="logo-text">ЭКО<span class="logo-accent">Coin</span></span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#hero">Главная</a></li>
+        <li><a href="#how">Как это работает</a></li>
+        <li><a href="#stats">Статистика</a></li>
+        <li><a href="#partners">Партнёры</a></li>
+        <li><a href="#dashboard">Кабинет</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn-ghost" id="loginBtn">Войти</button>
+        <button class="btn-primary" id="startBtn">Начать</button>
+      </div>
+      <button class="burger" id="burger">☰</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <div class="hero-badge">🇰🇿 Казахстан · Зелёная экономика</div>
+      <h1 class="hero-title">
+        Сортируй отходы —<br />
+        <span class="gradient-text">зарабатывай монеты</span>
+      </h1>
+      <p class="hero-sub">
+        ЭКО Coin — первая цифровая бонусная платформа Казахстана, где каждый сданный килограмм вторсырья превращается в реальные скидки у партнёров.
+      </p>
+      <div class="hero-btns">
+        <button class="btn-primary btn-lg" onclick="showSection('dashboard')">Открыть кабинет</button>
+        <button class="btn-outline btn-lg" onclick="scrollTo('#how')">Как это работает</button>
+      </div>
+      <div class="hero-stats">
+        <div class="hstat">
+          <span class="hstat-num" data-target="4500000">0</span>
+          <span class="hstat-label">т/год отходов в РК</span>
+        </div>
+        <div class="hstat-divider"></div>
+        <div class="hstat">
+          <span class="hstat-num" data-target="26">0</span><span class="hstat-suffix">%</span>
+          <span class="hstat-label">перерабатывается</span>
+        </div>
+        <div class="hstat-divider"></div>
+        <div class="hstat">
+          <span class="hstat-num" data-target="6200000">0</span>
+          <span class="hstat-label">участников «Таза Қазақстан»</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="coin-3d">
+        <div class="coin-face front">
+          <span class="coin-symbol">♻</span>
+          <span class="coin-name">ЭКО</span>
+        </div>
+        <div class="coin-face back">
+          <span class="coin-symbol">🌿</span>
+        </div>
+      </div>
+      <div class="coin-rings">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+      </div>
+      <div class="floating-badges">
+        <div class="fbadge fb-1">+12 🪙 Пластик</div>
+        <div class="fbadge fb-2">+8 🪙 Стекло</div>
+        <div class="fbadge fb-3">+20 🪙 Бумага</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Механика</span>
+        <h2>Как работает <span class="gradient-text">ЭКО Coin</span></h2>
+        <p>Три простых шага от сдачи мусора до реальных бонусов</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card" data-step="1">
+          <div class="step-icon">🗑️</div>
+          <div class="step-num">01</div>
+          <h3>Сдай вторсырьё</h3>
+          <p>Найди ближайший пункт приёма на карте. Сдай пластик, стекло, бумагу или металл.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card" data-step="2">
+          <div class="step-icon">🪙</div>
+          <div class="step-num">02</div>
+          <h3>Получи монеты</h3>
+          <p>ЭКО Coin начисляются автоматически на твой счёт. Чем больше — тем выгоднее.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card" data-step="3">
+          <div class="step-icon">🛍️</div>
+          <div class="step-num">03</div>
+          <h3>Трать у партнёров</h3>
+          <p>Обменяй монеты на скидки, товары и услуги в магазинах партнёрской сети.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section" id="stats">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Данные</span>
+        <h2>Рынок и <span class="gradient-text">потенциал</span></h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card glass">
+          <div class="stat-icon">🏙️</div>
+          <div class="stat-value">63%</div>
+          <div class="stat-label">Городское население Казахстана</div>
+          <div class="stat-note">Идеальная аудитория для пилота</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-value">3 156</div>
+          <div class="stat-label">млрд ₸ — объём e-commerce 2024</div>
+          <div class="stat-note">Цифровая среда готова</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-icon">🏭</div>
+          <div class="stat-value">37</div>
+          <div class="stat-label">новых заводов по переработке</div>
+          <div class="stat-note">Инфраструктура растёт</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">185</div>
+          <div class="stat-label">млрд ₸ — господдержка до 2030</div>
+          <div class="stat-note">Концепция 2026-2030 принята</div>
+        </div>
+      </div>
+
+      <!-- Comparison table -->
+      <div class="compare-table glass">
+        <h3>ЭКО Coin vs мировые аналоги</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Проект</th>
+                <th>Механика</th>
+                <th>Сильная сторона</th>
+                <th>Для ЭКО Coin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge-brand">TOMRA</span></td>
+                <td>Автомат + мобайл</td>
+                <td>Автоматизация</td>
+                <td>Интеграция с техникой</td>
+              </tr>
+              <tr>
+                <td><span class="badge-brand">Sparklo</span></td>
+                <td>Smart-машина + сыйақы</td>
+                <td>Геймификация</td>
+                <td>Срочные бонусы важны</td>
+              </tr>
+              <tr>
+                <td><span class="badge-brand">Recyclebank</span></td>
+                <td>Ұпай + партнёры</td>
+                <td>Лояльность</td>
+                <td>Экобонус + контент</td>
+              </tr>
+              <tr class="highlight-row">
+                <td><span class="badge-brand eco">ЭКО Coin</span></td>
+                <td>Сдача + бонус + партнёр</td>
+                <td>Локальный рынок</td>
+                <td>Гибридная модель ✅</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section class="partners-section" id="partners">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Экосистема</span>
+        <h2>Партнёрская <span class="gradient-text">сеть</span></h2>
+        <p>Тратьте монеты в магазинах и сервисах</p>
+      </div>
+      <div class="partners-grid">
+        <div class="partner-card glass" data-discount="15%">
+          <div class="partner-icon">🛒</div>
+          <div class="partner-name">Магнум</div>
+          <div class="partner-bonus">до 15% скидки</div>
+        </div>
+        <div class="partner-card glass" data-discount="10%">
+          <div class="partner-icon">☕</div>
+          <div class="partner-name">Coffee дом</div>
+          <div class="partner-bonus">до 10% скидки</div>
+        </div>
+        <div class="partner-card glass" data-discount="20%">
+          <div class="partner-icon">💊</div>
+          <div class="partner-name">Аптека Plus</div>
+          <div class="partner-bonus">до 20% скидки</div>
+        </div>
+        <div class="partner-card glass" data-discount="12%">
+          <div class="partner-icon">🚌</div>
+          <div class="partner-name">Транспорт РК</div>
+          <div class="partner-bonus">до 12% скидки</div>
+        </div>
+        <div class="partner-card glass" data-discount="25%">
+          <div class="partner-icon">📱</div>
+          <div class="partner-name">Technodom</div>
+          <div class="partner-bonus">до 25% скидки</div>
+        </div>
+        <div class="partner-card glass partner-join">
+          <div class="partner-icon">➕</div>
+          <div class="partner-name">Стать партнёром</div>
+          <div class="partner-bonus">Открыто для бизнеса</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="dashboard-section" id="dashboard">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Личный кабинет</span>
+        <h2>Ваш <span class="gradient-text">ЭКО профиль</span></h2>
+      </div>
+      <div class="dashboard-grid">
+        <!-- Balance card -->
+        <div class="dash-card glass balance-card">
+          <div class="user-info">
+            <div class="user-avatar">🧑</div>
+            <div>
+              <div class="user-name">Алибек М.</div>
+              <div class="user-level">🌿 Эко-Чемпион</div>
+            </div>
+          </div>
+          <div class="balance-display">
+            <div class="balance-label">Баланс</div>
+            <div class="balance-amount" id="balanceAmount">1 247</div>
+            <div class="balance-unit">ЭКО Coin 🪙</div>
+          </div>
+          <button class="btn-primary" onclick="addCoins()">+ Сдать вторсырьё</button>
+        </div>
+
+        <!-- Activity -->
+        <div class="dash-card glass activity-card">
+          <h3>Активность за месяц</h3>
+          <div class="activity-bars" id="activityBars"></div>
+        </div>
+
+        <!-- Waste stats -->
+        <div class="dash-card glass waste-card">
+          <h3>Сдано отходов</h3>
+          <div class="waste-types">
+            <div class="waste-item">
+              <div class="waste-icon">🧴</div>
+              <div class="waste-info">
+                <span>Пластик</span>
+                <div class="waste-bar"><div class="waste-fill" style="width:72%"></div></div>
+              </div>
+              <span class="waste-kg">14.4 кг</span>
+            </div>
+            <div class="waste-item">
+              <div class="waste-icon">📦</div>
+              <div class="waste-info">
+                <span>Бумага</span>
+                <div class="waste-bar"><div class="waste-fill" style="width:55%"></div></div>
+              </div>
+              <span class="waste-kg">11 кг</span>
+            </div>
+            <div class="waste-item">
+              <div class="waste-icon">🍾</div>
+              <div class="waste-info">
+                <span>Стекло</span>
+                <div class="waste-bar"><div class="waste-fill" style="width:38%"></div></div>
+              </div>
+              <span class="waste-kg">7.6 кг</span>
+            </div>
+            <div class="waste-item">
+              <div class="waste-icon">🔩</div>
+              <div class="waste-info">
+                <span>Металл</span>
+                <div class="waste-bar"><div class="waste-fill" style="width:20%"></div></div>
+              </div>
+              <span class="waste-kg">4 кг</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="dash-card glass achieve-card">
+          <h3>Достижения</h3>
+          <div class="achievements">
+            <div class="achievement unlocked" title="Первая сдача">
+              <div class="ach-icon">🌱</div>
+              <div class="ach-name">Новичок</div>
+            </div>
+            <div class="achievement unlocked" title="10 кг сдано">
+              <div class="ach-icon">♻️</div>
+              <div class="ach-name">Переработчик</div>
+            </div>
+            <div class="achievement unlocked" title="30 дней подряд">
+              <div class="ach-icon">🔥</div>
+              <div class="ach-name">Серия x30</div>
+            </div>
+            <div class="achievement locked" title="100 кг сдано">
+              <div class="ach-icon">🏆</div>
+              <div class="ach-name">Эко-Герой</div>
+            </div>
+            <div class="achievement locked" title="1000 монет">
+              <div class="ach-icon">💎</div>
+              <div class="ach-name">Тысячник</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="dash-card glass tx-card">
+          <h3>История операций</h3>
+          <div class="tx-list" id="txList">
+            <div class="tx-item">
+              <div class="tx-icon">🧴</div>
+              <div class="tx-info">
+                <span>Пластик — 2 кг</span>
+                <small>Сегодня, 09:15</small>
+              </div>
+              <div class="tx-amount plus">+24 🪙</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon">🛒</div>
+              <div class="tx-info">
+                <span>Скидка в Магнум</span>
+                <small>Вчера, 15:42</small>
+              </div>
+              <div class="tx-amount minus">-150 🪙</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon">📦</div>
+              <div class="tx-info">
+                <span>Бумага — 5 кг</span>
+                <small>2 дня назад</small>
+              </div>
+              <div class="tx-amount plus">+40 🪙</div>
+            </div>
+            <div class="tx-item">
+              <div class="tx-icon">🍾</div>
+              <div class="tx-info">
+                <span>Стекло — 3 кг</span>
+                <small>4 дня назад</small>
+              </div>
+              <div class="tx-amount plus">+18 🪙</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map placeholder -->
+        <div class="dash-card glass map-card">
+          <h3>📍 Ближайшие пункты приёма</h3>
+          <div class="map-placeholder">
+            <div class="map-grid"></div>
+            <div class="map-point mp-1">
+              <div class="mp-dot"></div>
+              <div class="mp-label">ул. Абая, 12<br/><small>0.3 км</small></div>
+            </div>
+            <div class="map-point mp-2">
+              <div class="mp-dot"></div>
+              <div class="mp-label">пр. Республики, 5<br/><small>0.8 км</small></div>
+            </div>
+            <div class="map-point mp-3">
+              <div class="mp-dot"></div>
+              <div class="mp-label">ТЦ Керуен<br/><small>1.2 км</small></div>
+            </div>
+            <div class="map-you">📍 Вы здесь</div>
+          </div>
+          <button class="btn-ghost btn-full">Открыть полную карту →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PEST SECTION -->
+  <section class="pest-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">PEST Анализ</span>
+        <h2>Внешняя среда <span class="gradient-text">проекта</span></h2>
+      </div>
+      <div class="pest-grid">
+        <div class="pest-card glass">
+          <div class="pest-letter">P</div>
+          <h3>Политика</h3>
+          <div class="pest-level high">Высокий потенциал</div>
+          <ul>
+            <li>Концепция управления отходами 2026–2030</li>
+            <li>Программа «Таза Қазақстан»</li>
+            <li>37 новых заводов по переработке</li>
+          </ul>
+        </div>
+        <div class="pest-card glass">
+          <div class="pest-letter">E</div>
+          <h3>Экономика</h3>
+          <div class="pest-level mid">Средне-высокий</div>
+          <ul>
+            <li>185 млрд ₸ льготное финансирование</li>
+            <li>Рост e-commerce</li>
+            <li>Партнёрский доход от аналитики</li>
+          </ul>
+        </div>
+        <div class="pest-card glass">
+          <div class="pest-letter">S</div>
+          <h3>Социум</h3>
+          <div class="pest-level high">Высокий потенциал</div>
+          <ul>
+            <li>6.2 млн участников эко-акций</li>
+            <li>Молодёжь 18–35 как ядро</li>
+            <li>Green School — 500 тыс. школьников</li>
+          </ul>
+        </div>
+        <div class="pest-card glass">
+          <div class="pest-letter">T</div>
+          <h3>Технологии</h3>
+          <div class="pest-level mid">Средне-высокий</div>
+          <ul>
+            <li>Рост цифровых сервисов</li>
+            <li>Mobile-first аудитория</li>
+            <li>Развитая ИКТ-инфраструктура</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <div class="logo-icon">🌿</div>
+            <span class="logo-text">ЭКО<span class="logo-accent">Coin</span></span>
+          </div>
+          <p>Цифровая бонусная платформа для стимулирования раздельного сбора отходов в Казахстане.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Платформа</h4>
+            <a href="#how">Как работает</a>
+            <a href="#partners">Партнёры</a>
+            <a href="#dashboard">Кабинет</a>
+          </div>
+          <div class="footer-col">
+            <h4>Проект</h4>
+            <a href="#">О нас</a>
+            <a href="#">Исследование</a>
+            <a href="#">Пресса</a>
+          </div>
+          <div class="footer-col">
+            <h4>Контакты</h4>
+            <a href="#">Актау, Казахстан</a>
+            <a href="#">info@ecocoin.kz</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 ЭКО Coin. Зелёная экономика Казахстана.</span>
+        <span>С. Шыңғыс · Б. Нұрқожа · Д. Ерсайын</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: Add coins -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal glass">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2>Сдать вторсырьё 🗑️</h2>
+      <p>Выберите тип и укажите вес</p>
+      <div class="waste-options">
+        <button class="waste-opt active" data-rate="12" onclick="selectWaste(this,'Пластик')">🧴 Пластик<br/><small>12 🪙/кг</small></button>
+        <button class="waste-opt" data-rate="8" onclick="selectWaste(this,'Бумага')">📦 Бумага<br/><small>8 🪙/кг</small></button>
+        <button class="waste-opt" data-rate="6" onclick="selectWaste(this,'Стекло')">🍾 Стекло<br/><small>6 🪙/кг</small></button>
+        <button class="waste-opt" data-rate="15" onclick="selectWaste(this,'Металл')">🔩 Металл<br/><small>15 🪙/кг</small></button>
+      </div>
+      <div class="modal-input-row">
+        <label>Вес (кг):</label>
+        <input type="number" id="weightInput" min="0.1" step="0.1" value="1" oninput="calcCoins()" />
+      </div>
+      <div class="modal-calc">
+        Вы получите: <strong id="calcResult">12</strong> 🪙
+      </div>
+      <button class="btn-primary btn-full" onclick="confirmAdd()">Подтвердить ✅</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+node_modules/
+eco.db
+.env
+*.log
