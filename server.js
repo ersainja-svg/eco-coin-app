@@ -210,6 +210,13 @@ app.get('/api/achievements', auth, (req, res) => {
   res.json(all);
 });
 
+app.get('/app', (_, res) => res.sendFile(path.join(__dirname, 'public', 'app', 'index.html')));
+app.get('/app/*', (req, res) => {
+  const file = path.join(__dirname, 'public', 'app', req.params[0]);
+  if (require('fs').existsSync(file)) return res.sendFile(file);
+  res.sendFile(path.join(__dirname, 'public', 'app', 'index.html'));
+});
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // Start
