@@ -1,4 +1,4 @@
-const CACHE = 'eco-coin-v1';
+const CACHE = 'eco-coin-v3';
 const ASSETS = ['/', '/style.css', '/app.js', '/manifest.json'];
 
 self.addEventListener('install', e => {
