@@ -3,49 +3,86 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
-const Database = require('better-sqlite3');
+const fs = require('fs');
+const initSqlJs = require('sql.js');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const JWT_SECRET = 'eco_coin_secret_key_2026';
-const db = new Database(path.join(__dirname, 'eco.db'));
+const JWT_SECRET = process.env.JWT_SECRET || 'eco_coin_secret_key_2026';
+const DB_PATH = path.join(__dirname, 'eco.db');
 
-// Init DB
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    phone TEXT,
-    password TEXT NOT NULL,
-    balance INTEGER DEFAULT 0,
-    total_kg REAL DEFAULT 0,
-    level TEXT DEFAULT 'Новичок',
-    avatar TEXT DEFAULT '🧑',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+let db;
 
-  CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    waste_type TEXT,
-    kg REAL,
-    coins INTEGER NOT NULL,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
+// Init sql.js and load/create DB
+async function initDb() {
+  const SQL = await initSqlJs();
+  if (fs.existsSync(DB_PATH)) {
+    const fileBuffer = fs.readFileSync(DB_PATH);
+    db = new SQL.Database(fileBuffer);
+  } else {
+    db = new SQL.Database();
+  }
 
-  CREATE TABLE IF NOT EXISTS achievements (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    icon TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      phone TEXT,
+      password TEXT NOT NULL,
+      balance INTEGER DEFAULT 0,
+      total_kg REAL DEFAULT 0,
+      level TEXT DEFAULT 'Новичок',
+      avatar TEXT DEFAULT '🧑',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      waste_type TEXT,
+      kg REAL,
+      coins INTEGER NOT NULL,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS achievements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      icon TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  saveDb();
+}
+
+function saveDb() {
+  const data = db.export();
+  fs.writeFileSync(DB_PATH, Buffer.from(data));
+}
+
+// Helper: run a query and return rows as objects
+function query(sql, params = []) {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const rows = [];
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject());
+  }
+  stmt.free();
+  return rows;
+}
+
+function run(sql, params = []) {
+  db.run(sql, params);
+  saveDb();
+  return db;
+}
+
+function getLastId() {
+  return query('SELECT last_insert_rowid() as id')[0].id;
+}
 
 app.use(cors());
 app.use(express.json());
@@ -73,8 +110,6 @@ function getLevel(balance) {
 }
 
 // === AUTH ROUTES ===
-
-// Register
 app.post('/api/register', (req, res) => {
   const { name, email, phone, password } = req.body;
   if (!name || !email || !password)
@@ -82,27 +117,26 @@ app.post('/api/register', (req, res) => {
   if (password.length < 6)
     return res.status(400).json({ error: 'Пароль минимум 6 символов' });
 
+  const existing = query('SELECT id FROM users WHERE email = ?', [email]);
+  if (existing.length) return res.status(400).json({ error: 'Email уже используется' });
+
   const hash = bcrypt.hashSync(password, 10);
   try {
-    const stmt = db.prepare('INSERT INTO users (name, email, phone, password) VALUES (?,?,?,?)');
-    const result = stmt.run(name, email, phone || '', hash);
-    // Welcome bonus
-    db.prepare('UPDATE users SET balance = 50 WHERE id = ?').run(result.lastInsertRowid);
-    db.prepare('INSERT INTO transactions (user_id, type, coins, description) VALUES (?,?,?,?)').run(
-      result.lastInsertRowid, 'bonus', 50, 'Приветственный бонус 🎉'
-    );
-    const token = jwt.sign({ id: result.lastInsertRowid, email }, JWT_SECRET, { expiresIn: '30d' });
+    run('INSERT INTO users (name, email, phone, password) VALUES (?,?,?,?)', [name, email, phone || '', hash]);
+    const id = getLastId();
+    run('UPDATE users SET balance = 50 WHERE id = ?', [id]);
+    run('INSERT INTO transactions (user_id, type, coins, description) VALUES (?,?,?,?)', [id, 'bonus', 50, 'Приветственный бонус 🎉']);
+    const token = jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, token, message: 'Добро пожаловать! +50 монет в подарок 🎉' });
   } catch (e) {
-    if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Email уже используется' });
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: 'Ошибка сервера: ' + e.message });
   }
 });
 
-// Login
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const users = query('SELECT * FROM users WHERE email = ?', [email]);
+  const user = users[0];
   if (!user || !bcrypt.compareSync(password, user.password))
     return res.status(401).json({ error: 'Неверный email или пароль' });
   const token = jwt.sign({ id: user.id, email }, JWT_SECRET, { expiresIn: '30d' });
@@ -110,22 +144,19 @@ app.post('/api/login', (req, res) => {
 });
 
 // === USER ROUTES ===
-
-// Get profile
 app.get('/api/me', auth, (req, res) => {
-  const user = db.prepare('SELECT id,name,email,phone,balance,total_kg,level,avatar,created_at FROM users WHERE id=?').get(req.user.id);
-  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+  const users = query('SELECT id,name,email,phone,balance,total_kg,avatar,created_at FROM users WHERE id=?', [req.user.id]);
+  if (!users.length) return res.status(404).json({ error: 'Не найден' });
+  const user = users[0];
   user.level = getLevel(user.balance);
   res.json(user);
 });
 
-// Get transactions
 app.get('/api/transactions', auth, (req, res) => {
-  const txs = db.prepare('SELECT * FROM transactions WHERE user_id=? ORDER BY created_at DESC LIMIT 20').all(req.user.id);
+  const txs = query('SELECT * FROM transactions WHERE user_id=? ORDER BY created_at DESC LIMIT 20', [req.user.id]);
   res.json(txs);
 });
 
-// Submit waste
 app.post('/api/waste', auth, (req, res) => {
   const { waste_type, kg } = req.body;
   const rates = { 'Пластик': 12, 'Бумага': 8, 'Стекло': 6, 'Металл': 15, 'Электроника': 20 };
@@ -133,56 +164,58 @@ app.post('/api/waste', auth, (req, res) => {
   if (!rate || !kg || kg <= 0) return res.status(400).json({ error: 'Неверные данные' });
 
   const coins = Math.round(kg * rate);
-  db.prepare('UPDATE users SET balance = balance + ?, total_kg = total_kg + ? WHERE id=?').run(coins, kg, req.user.id);
-  db.prepare('INSERT INTO transactions (user_id, type, waste_type, kg, coins, description) VALUES (?,?,?,?,?,?)').run(
-    req.user.id, 'earn', waste_type, kg, coins, `${waste_type} — ${kg} кг`
-  );
+  run('UPDATE users SET balance = balance + ?, total_kg = total_kg + ? WHERE id=?', [coins, kg, req.user.id]);
+  run('INSERT INTO transactions (user_id, type, waste_type, kg, coins, description) VALUES (?,?,?,?,?,?)',
+    [req.user.id, 'earn', waste_type, kg, coins, `${waste_type} — ${kg} кг`]);
 
-  // Check achievements
-  const user = db.prepare('SELECT balance, total_kg FROM users WHERE id=?').get(req.user.id);
-  const achieves = db.prepare('SELECT name FROM achievements WHERE user_id=?').all(req.user.id).map(a => a.name);
+  const users = query('SELECT balance, total_kg FROM users WHERE id=?', [req.user.id]);
+  const user = users[0];
+  const earned = query('SELECT name FROM achievements WHERE user_id=?', [req.user.id]).map(a => a.name);
   const newAchieves = [];
-  if (!achieves.includes('Первая сдача')) {
-    db.prepare('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)').run(req.user.id, 'Первая сдача', '🌱');
+
+  if (!earned.includes('Первая сдача')) {
+    run('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)', [req.user.id, 'Первая сдача', '🌱']);
     newAchieves.push('Первая сдача 🌱');
   }
-  if (user.total_kg >= 10 && !achieves.includes('Переработчик')) {
-    db.prepare('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)').run(req.user.id, 'Переработчик', '♻️');
+  if (user.total_kg >= 10 && !earned.includes('Переработчик')) {
+    run('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)', [req.user.id, 'Переработчик', '♻️']);
     newAchieves.push('Переработчик ♻️');
   }
-  if (user.balance >= 1000 && !achieves.includes('Тысячник')) {
-    db.prepare('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)').run(req.user.id, 'Тысячник', '💎');
+  if (user.balance >= 1000 && !earned.includes('Тысячник')) {
+    run('INSERT INTO achievements (user_id, name, icon) VALUES (?,?,?)', [req.user.id, 'Тысячник', '💎']);
     newAchieves.push('Тысячник 💎');
   }
 
   res.json({ success: true, coins, balance: user.balance, newAchievements: newAchieves });
 });
 
-// Spend coins (partner offer)
 app.post('/api/spend', auth, (req, res) => {
   const { coins, description } = req.body;
-  const user = db.prepare('SELECT balance FROM users WHERE id=?').get(req.user.id);
-  if (user.balance < coins) return res.status(400).json({ error: 'Недостаточно монет' });
-  db.prepare('UPDATE users SET balance = balance - ? WHERE id=?').run(coins, req.user.id);
-  db.prepare('INSERT INTO transactions (user_id, type, coins, description) VALUES (?,?,?,?)').run(
-    req.user.id, 'spend', -coins, description
-  );
-  res.json({ success: true, balance: user.balance - coins });
+  const users = query('SELECT balance FROM users WHERE id=?', [req.user.id]);
+  if (!users.length || users[0].balance < coins)
+    return res.status(400).json({ error: 'Недостаточно монет' });
+  run('UPDATE users SET balance = balance - ? WHERE id=?', [coins, req.user.id]);
+  run('INSERT INTO transactions (user_id, type, coins, description) VALUES (?,?,?,?)',
+    [req.user.id, 'spend', -coins, description]);
+  res.json({ success: true, balance: users[0].balance - coins });
 });
 
-// Get leaderboard
 app.get('/api/leaderboard', (req, res) => {
-  const users = db.prepare('SELECT id, name, balance, total_kg, avatar FROM users ORDER BY balance DESC LIMIT 10').all();
+  const users = query('SELECT id, name, balance, total_kg, avatar FROM users ORDER BY balance DESC LIMIT 10');
   res.json(users);
 });
 
-// Get achievements
 app.get('/api/achievements', auth, (req, res) => {
-  const all = db.prepare('SELECT * FROM achievements WHERE user_id=? ORDER BY created_at DESC').all(req.user.id);
+  const all = query('SELECT * FROM achievements WHERE user_id=? ORDER BY created_at DESC', [req.user.id]);
   res.json(all);
 });
 
-// Fallback to index.html
 app.get('*', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.listen(PORT, () => console.log(`🌿 ЭКО Coin сервер запущен: http://localhost:${PORT}`));
+// Start
+initDb().then(() => {
+  app.listen(PORT, () => console.log(`🌿 ЭКО Coin запущен: http://localhost:${PORT}`));
+}).catch(err => {
+  console.error('DB init error:', err);
+  process.exit(1);
+});
